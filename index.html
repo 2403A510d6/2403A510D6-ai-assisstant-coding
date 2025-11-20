@@ -1,1259 +1,503 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GreenGuild - Gamified Environmental Education Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        /* CSS for the GreenGuild website */
 
-        :root {
-            --blue-primary: #1976D2; /* Changed from --green-primary */
-            --blue-secondary: #2196F3; /* Changed from --green-secondary */
-            --blue-gradient-start: #42A5F5; /* Changed from --teal-gradient-start */
-            --blue-gradient-end: #1E88E5; /* Changed from --teal-gradient-end */
-            --card-bg: rgba(255, 255, 255, 0.1);
-            --text-color: #f0f4f4;
-            --shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            --border-radius: 16px;
-        }
+  <meta charset="utf-8" />
 
-        /* --- Global Styles & Animated Background --- */
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+  <title>Brain Tumor Detection — Hybrid CNN–SVM & ResNet Benchmark</title>
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, var(--blue-primary), var(--blue-secondary)); /* Changed */
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        /* Animated flowing background effect */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3Cpattern id='p' width='10' height='10' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'%3E%3Cpath d='M-1 1 l 2 -2 M0 10 l 10 -10 M9 11 l 2 -2' stroke='%23ffffff' stroke-width='1' opacity='.1'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23p)'/%3E%3C/svg%3E");
-            animation: flow 20s linear infinite;
-            z-index: -1;
-            opacity: 0.5;
-        }
-        
-        @keyframes flow {
-            from {
-                background-position: 0 0;
-            }
-            to {
-                background-position: 100% 100%;
-            }
-        }
+  <meta name="description" content="Project: Brain Tumor Detection Using a Hybrid CNN–SVM Model and benchmarking against ResNet. Demo, dataset info, model architecture, and results." />
 
-        /* --- UI Components --- */
+  <style>
 
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 24px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+    :root{--bg:#0f172a;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8;--glass: rgba(255,255,255,0.03)}
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        }
+    *{box-sizing:border-box}
 
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-weight: 600;
-            text-decoration: none;
-            text-align: center;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
+    body{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial; margin:0; background:linear-gradient(180deg,#071022 0%, #041022 100%); color:#e6eef6; -webkit-font-smoothing:antialiased}
 
-        .btn-primary {
-            background: linear-gradient(90deg, var(--blue-gradient-start), var(--blue-gradient-end)); /* Changed */
-            color: white;
-        }
+    .container{max-width:1100px;margin:40px auto;padding:24px}
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-        }
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
 
-        .input-field {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 16px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.15);
-            color: var(--text-color);
-            outline: none;
-            transition: border-color 0.3s ease;
-        }
+    .brand{display:flex;gap:12px;align-items:center}
 
-        .input-field::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
+    .logo{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700}
 
-        .input-field:focus {
-            border-color: var(--blue-gradient-start); /* Changed */
-        }
-        
-        .message-box {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(45deg, var(--blue-primary), var(--blue-secondary)); /* Changed */
-            color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-20px);
-            transition: all 0.4s ease-in-out;
-        }
+    nav a{color:var(--muted);text-decoration:none;margin-left:16px}
 
-        .message-box.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
+    .hero{display:grid;grid-template-columns:1fr 380px;gap:24px;margin-top:28px}
 
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1001;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-            padding-top: 60px;
-            animation: fadeIn 0.3s ease-in-out;
-        }
+    .card{background:var(--card);padding:20px;border-radius:12px;box-shadow:0 6px 20px rgba(2,6,23,0.6)}
 
-        .modal-content {
-            background: var(--card-bg);
-            margin: 5% auto;
-            padding: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: var(--border-radius);
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            position: relative;
-        }
+    h1{margin:0 0 8px 0;font-size:20px}
 
-        .close-btn {
-            color: #aaa;
-            position: absolute;
-            top: 15px;
-            right: 25px;
-            font-size: 28px;
-            font-weight: bold;
-            transition: color 0.3s ease;
-        }
+    p.lead{color:var(--muted);margin:0 0 18px 0}
 
-        .close-btn:hover,
-        .close-btn:focus {
-            color: var(--text-color);
-            text-decoration: none;
-            cursor: pointer;
-        }
+    .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 
+    .pill{background:var(--glass);padding:6px 10px;border-radius:999px;color:var(--muted);font-size:13px}
 
-        /* --- Layout & Structure --- */
+    .upload-area{display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;padding:18px;border:2px dashed rgba(255,255,255,0.04);border-radius:10px}
 
-        .container {
-            max-width: 1000px;
-            width: 90%;
-            margin: 0 auto;
-            padding: 20px 0;
-        }
+    input[type=file]{display:none}
 
-        .page {
-            display: none;
-            min-height: 80vh;
-            padding-top: 80px;
-            animation: fadeIn 0.5s ease-in-out;
-        }
+    .btn{background:linear-gradient(90deg,var(--accent),#7c3aed);border:none;padding:10px 14px;border-radius:10px;color:#021024;font-weight:700;cursor:pointer}
 
-        .page.active {
-            display: block;
-        }
+    .small{font-size:13px;color:var(--muted)}
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
 
-        header {
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(5px);
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 100;
-            padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: none; /* Hidden by default, shown after login */
-        }
+    .model-arch{font-family:monospace;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:12px;border-radius:8px;color:#cfeefb}
 
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
+    footer{margin-top:34px;padding:18px;text-align:center;color:var(--muted)}
 
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--text-color);
-            text-decoration: none;
-        }
+    .results{margin-top:12px}
 
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-        }
+    table{width:100%;border-collapse:collapse;margin-top:8px}
 
-        .nav-link {
-            color: var(--text-color);
-            text-decoration: none;
-            font-weight: 600;
-            opacity: 0.8;
-            transition: opacity 0.3s ease;
-        }
+    th,td{padding:8px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03)}
 
-        .nav-link:hover {
-            opacity: 1;
-        }
-        
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 1rem;
-            }
-            .page {
-                padding-top: 100px;
-            }
-        }
+    .badge{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.03);color:var(--muted);font-weight:600}
 
-        footer {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            text-align: center;
-            font-size: 0.9rem;
-            margin-top: auto;
-        }
-        
-        /* --- Page-specific Styles --- */
+    @media (max-width:900px){.hero{grid-template-columns:1fr} .brand h3{display:none}}
 
-        .home-grid {
-            display: grid;
-            gap: 24px;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        }
+  </style>
 
-        .leaderboard-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .leaderboard-item, .student-item {
-            display: flex;
-            align-items: center;
-            padding: 16px;
-            margin-bottom: 12px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .leaderboard-item:hover, .student-item:hover {
-            transform: scale(1.02);
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .rank {
-            font-size: 1.5rem;
-            font-weight: 700;
-            width: 40px;
-            text-align: center;
-        }
-
-        .user-info {
-            flex-grow: 1;
-            margin-left: 15px;
-        }
-        
-        .username {
-            font-size: 0.8rem;
-            opacity: 0.7;
-        }
-
-        .badge-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 20px;
-            text-align: center;
-        }
-        
-        .badge-card {
-            padding: 10px;
-        }
-
-        .badge-card img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 3px solid white;
-            transition: transform 0.3s ease;
-        }
-        
-        .badge-card img:hover {
-            transform: scale(1.1) rotate(10deg);
-        }
-
-        .badge-unlocked {
-            animation: bounceIn 0.8s ease-out;
-        }
-        
-        @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); }
-        }
-
-        /* Dual Login Tab-specific styles */
-        .login-tabs {
-            display: flex;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        .login-tab {
-            flex: 1;
-            text-align: center;
-            padding: 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-        .login-tab.active {
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .mission-submission-form {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            display: none;
-        }
-        
-        #submission-proof-image {
-            max-width: 100%;
-            border-radius: 12px;
-            margin-top: 15px;
-        }
-        
-        .quiz-question {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-        .quiz-options label {
-            display: block;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        .quiz-options label:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        .quiz-options input[type="radio"] {
-            margin-right: 10px;
-        }
-        .quiz-result {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: 600;
-            display: none;
-        }
-        .quiz-result.correct {
-            background-color: var(--blue-secondary); /* Changed */
-        }
-        .quiz-result.incorrect {
-            background-color: #f44336;
-        }
-        
-        .profile-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding-top: 50px;
-        }
-        
-        .profile-image {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 4px solid var(--text-color);
-            object-fit: cover;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-        }
-
-        /* Admin Dashboard Styles */
-        .admin-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .admin-tab {
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .admin-tab:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        .admin-tab.active {
-            background: rgba(255, 255, 255, 0.3);
-            border-bottom: 2px solid var(--blue-gradient-start); /* Changed */
-        }
-        .admin-content {
-            display: none;
-        }
-        .admin-content.active {
-            display: block;
-        }
-        
-        .admin-list-item {
-            display: flex;
-            align-items: center;
-            padding: 16px;
-            margin-bottom: 12px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .admin-list-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        #quiz-form {
-            display: none;
-            margin-top: 20px;
-        }
-        .quiz-question-fields {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-        }
-    </style>
 </head>
+
 <body>
 
-    <header id="main-header">
-        <nav class="navbar">
-            <a href="#" class="logo">GreenGuild 🌱</a>
-            <div class="nav-links" id="nav-menu">
-                <a href="#" class="nav-link" data-page="home" id="home-link">Dashboard</a>
-                <a href="#" class="nav-link" data-page="missions">Missions</a>
-                <a href="#" class="nav-link" data-page="leaderboard">Leaderboard</a>
-                <a href="#" class="nav-link" data-page="badges">Badges</a>
-                <a href="#" class="nav-link" data-page="contact">Contact</a>
-                <a href="#" class="nav-link" data-page="profile">Profile</a>
-                <a href="#" class="nav-link" data-page="admin" id="admin-link" style="display: none;">Admin</a>
-                <a href="#" class="nav-link" id="logout-btn">Logout</a>
-            </div>
-        </nav>
-    </header>
-    
-    <div id="message-box" class="message-box"></div>
+  <div class="container">
 
-    <div id="submissionModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2 style="margin-bottom: 10px;">Submission Details</h2>
-            <div id="modal-content-area">
-                <p><strong>Student:</strong> <span id="modal-student-name"></span></p>
-                <p><strong>Mission:</strong> <span id="modal-mission-title"></span></p>
-                <div style="margin-top: 20px;">
-                    <p style="margin-bottom: 10px;"><strong>Proof of Completion:</strong></p>
-                    <img id="modal-submission-proof" src="" alt="Submission Proof" style="width: 100%; border-radius: 12px;">
-                </div>
-            </div>
-            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn" style="background-color: #2e7d32; color: white;" onclick="approveSubmission(this.dataset.id)" data-id="">Approve</button>
-                <button class="btn" style="background-color: #d32f2f; color: white;" onclick="rejectSubmission(this.dataset.id)" data-id="">Reject</button>
-            </div>
+    <header>
+
+      <div class="brand">
+
+        <div class="logo">BT</div>
+
+        <div>
+
+          <h3 style="margin:0">Brain Tumor Detection</h3>
+
+          <div class="small">Hybrid CNN–SVM & ResNet benchmarking</div>
+
         </div>
-    </div>
 
-    <main class="container">
+      </div>
 
-        <section id="login" class="page active">
-            <div class="card" style="max-width: 400px; margin: 50px auto;">
-                <h2 style="text-align: center; margin-bottom: 20px;">Welcome ! 👋</h2>
+      <nav>
 
-                <form id="loginForm">
-                    <input type="email" id="loginEmail" class="input-field" placeholder="Email" required>
-                    <input type="password" id="loginPassword" class="input-field" placeholder="Password" required>
-                    
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        <input type="checkbox" id="rememberMe" style="margin-right: 8px;">
-                        <label for="rememberMe" style="font-size: 0.9rem; opacity: 0.8;">Remember me</label>
-                    </div>
+        <a href="#about">About</a>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
-                </form>
-                <div style="text-align: center; margin-top: 15px;">
-                    <a href="#" onclick="showPage('register')">Register new account</a>
-                </div>
-            </div>
-        </section>
+        <a href="#demo">Demo</a>
 
-        <section id="register" class="page">
-            <div class="card" style="max-width: 400px; margin: 50px auto;">
-                <h2 style="text-align: center; margin-bottom: 20px;">Join GreenGuild! 🌿</h2>
-                <form id="registerForm">
-                    <input type="text" id="regName" class="input-field" placeholder="Full Name" required>
-                    <input type="email" id="regEmail" class="input-field" placeholder="Email" required>
-                    <input type="password" id="regPassword" class="input-field" placeholder="Password (min 6 characters)" required>
-                    <input type="text" id="regSchool" class="input-field" placeholder="School/College Name" required>
-                    <select id="regRole" class="input-field" required>
-                        <option value="">Select Role</option>
-                        <option value="student">Student</option>
-                        <option value="teacher">Teacher</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
-                </form>
-                <p style="text-align: center; margin-top: 15px;">
-                    Already have an account? <a href="#" onclick="showPage('login')">Login here</a>
-                </p>
-            </div>
-        </section>
+        <a href="#models">Models</a>
 
-        <section id="profile" class="page">
-            <div class="profile-container">
-                <img src="https://placehold.co/150x150/e0f2f1/00796b?text=User" alt="User Profile Image" class="profile-image">
-                <div class="card" style="width: 100%; max-width: 500px;">
-                    <h2 id="profile-name" style="margin-bottom: 10px;"></h2>
-                    <p style="font-weight: 600; opacity: 0.9;" id="profile-role"></p>
-                    <p style="font-size: 0.9rem; opacity: 0.8;" id="profile-school"></p>
-                    <div style="display: flex; justify-content: space-around; margin-top: 20px;">
-                        <div>
-                            <p style="font-size: 2.5rem; font-weight: 700; color: var(--blue-gradient-start);" id="profile-points">0</p> <p style="font-size: 0.9rem; opacity: 0.7;">Eco-Points</p>
-                        </div>
-                        <div>
-                            <p style="font-size: 2.5rem; font-weight: 700; color: #ff9800;" id="profile-streak">0</p>
-                            <p style="font-size: 0.9rem; opacity: 0.7;">Day Streak</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <a href="#results">Results</a>
 
-        <section id="home" class="page">
-            <h1 style="margin-bottom: 30px;">Welcome ✨</h1>
-            <div class="home-grid">
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3>Eco-Points</h3>
-                        <div id="ecoPoints" style="font-size: 2.5rem; font-weight: 700; color: var(--blue-gradient-start);">0</div> </div>
-                    <div style="font-size: 0.9rem; opacity: 0.8;">
-                        Points earned from completed missions and challenges.
-                    </div>
-                </div>
+        <a href="#contact">Contact</a>
 
-                <div class="card">
-                    <h3>Daily Mission</h3>
-                    <p style="opacity: 0.8; margin-top: 5px;" id="dailyMissionTitle">Plant a sapling.</p>
-                    <p style="font-size: 0.9rem; opacity: 0.7; margin-top: 5px;">Earn 500 Eco-Points.</p>
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="showPage('missions')">Start Mission</button>
-                </div>
+      </nav>
 
-                <div class="card">
-                    <h3>Streaks 🔥</h3>
-                    <div style="display: flex; align-items: center; margin-top: 15px;">
-                        <span id="streakCount" style="font-size: 2rem; font-weight: 700; margin-right: 10px;">0</span>
-                        <div style="flex-grow: 1; height: 10px; background-color: rgba(255, 255, 255, 0.2); border-radius: 5px; overflow: hidden;">
-                            <div id="streakBar" style="height: 100%; width: 0%; background-color: #ff9800; border-radius: 5px; transition: width 0.5s ease;"></div>
-                        </div>
-                    </div>
-                    <p style="font-size: 0.9rem; opacity: 0.7; margin-top: 5px;">Complete a mission daily to keep your streak alive!</p>
-                </div>
+    </header>
+
+
+
+    <section class="hero">
+
+      <div class="card">
+
+        <h1>Project: Brain Tumor Detection Using Hybrid CNN–SVM + ResNet Benchmark</h1>
+
+        <p class="lead">A compact project website to explain dataset, architecture, training & benchmarking results. Includes a client-side demo uploader (mock prediction) and guidance for integrating a real ML backend (Flask/FastAPI).</p>
+
+
+
+        <div class="meta">
+
+          <span class="pill">Dataset: BRAST / TCIA / Custom MRI</span>
+
+          <span class="pill">Tech: TensorFlow / scikit-learn</span>
+
+          <span class="pill">Models: Hybrid CNN→SVM · ResNet-50</span>
+
+        </div>
+
+
+
+        <div class="grid-2">
+
+          <div>
+
+            <h4>Abstract</h4>
+
+            <p class="small">We propose a hybrid model that extracts features using a CNN (feature extractor) and classifies using an SVM. We benchmark the performance against fine-tuned ResNet variants, reporting accuracy, precision, recall, F1-score and inference time.</p>
+
+
+
+            <h4 style="margin-top:12px">Key contributions</h4>
+
+            <ul class="small">
+
+              <li>Hybrid CNN–SVM pipeline for robust classification</li>
+
+              <li>Benchmarking with ResNet-50 and ResNet-101</li>
+
+              <li>Model explainability: Grad-CAM visualizations</li>
+
+            </ul>
+
+          </div>
+
+
+
+          <div>
+
+            <h4>Quick Links</h4>
+
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+
+              <a class="btn" href="#demo">Try Demo</a>
+
+              <a class="btn" href="#models">Model Details</a>
 
             </div>
-        </section>
 
-        <section id="missions" class="page">
-            <h1 style="margin-bottom: 30px;">Missions & Quests 🌎</h1>
-            <div id="missions-list">
-                </div>
-        </section>
 
-        <section id="quiz" class="page">
-            <div class="card">
-                <h2 id="quizTitle">Quiz: The Water Cycle</h2>
-                <p id="quizDesc" style="margin-top: 10px; opacity: 0.8;">Test your knowledge on how water moves around the planet!</p>
-                <div id="quiz-questions" style="margin-top: 20px;">
-                    </div>
-                <button class="btn btn-primary" style="margin-top: 20px;" onclick="submitQuiz()">Submit Quiz</button>
-                <div id="quiz-result" class="quiz-result"></div>
-            </div>
-        </section>
-        
-        <section id="admin" class="page">
-            <h1 style="margin-bottom: 30px;">Admin Dashboard 👨‍🏫</h1>
 
-            <div class="admin-tabs">
-                <div class="admin-tab active" data-tab="mission-management">
-                    <i class="fas fa-tasks"></i> Mission Management
-                </div>
-                <div class="admin-tab" data-tab="pending-submissions">
-                    <i class="fas fa-inbox"></i> Pending Submissions (<span id="submission-count">0</span>)
-                </div>
-                <div class="admin-tab" data-tab="student-management">
-                    <i class="fas fa-users"></i> Student Management
-                </div>
-            </div>
+            <h4 style="margin-top:12px">Files</h4>
 
-            <div id="mission-management" class="admin-content active card">
-                <h2>Create a New Mission</h2>
-                <form id="createMissionForm" style="margin-top: 20px;">
-                    <input type="text" id="missionTitle" class="input-field" placeholder="Mission Title" required>
-                    <textarea id="missionDesc" class="input-field" placeholder="Mission Description" rows="3" required></textarea>
-                    <input type="number" id="missionPoints" class="input-field" placeholder="Eco-Points" required>
-                    <select id="missionType" class="input-field" required onchange="toggleQuizForm()">
-                        <option value="task">Task</option>
-                        <option value="quiz">Quiz</option>
-                    </select>
-                    
-                    <div id="quiz-form" style="display:none;">
-                        <h3>Quiz Questions</h3>
-                        <div id="quiz-questions-container">
-                            </div>
-                        <button type="button" class="btn" style="background-color: #555;" onclick="addQuizQuestion()"><i class="fas fa-plus"></i> Add Question</button>
-                    </div>
+            <div class="small" style="margin-top:6px">(Place your trained model files in the server/backend and update API endpoints in the demo script)</div>
 
-                    <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Assign Mission</button>
-                </form>
+            <ul class="small">
+
+              <li>model_cnn_feature_extractor.h5</li>
+
+              <li>svm_classifier.joblib</li>
+
+              <li>resnet_finetuned.h5</li>
+
+            </ul>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <aside class="card">
+
+        <h4 style="margin-top:0">Demo (Client-side mock)</h4>
+
+        <div class="upload-area">
+
+          <label for="imageUpload" style="cursor:pointer;width:100%">
+
+            <input id="imageUpload" type="file" accept="image/*">
+
+            <div style="text-align:center">
+
+              <div style="font-size:48px;opacity:0.7">🧠</div>
+
+              <div class="small">Upload an MRI image (JPG/PNG)</div>
+
             </div>
 
-            <div id="pending-submissions" class="admin-content card">
-                <h2>Pending Submissions</h2>
-                <ul id="submission-list" style="list-style: none; padding: 0;">
-                    </ul>
-            </div>
+          </label>
 
-            <div id="student-management" class="admin-content card">
-                <h2>Student Management</h2>
-                <input type="text" id="studentSearch" class="input-field" placeholder="Search students...">
-                <ul id="student-list" style="list-style: none; padding: 0;">
-                    </ul>
-            </div>
-        </section>
+          <div id="previewContainer" style="width:100%"></div>
 
-        <section id="leaderboard" class="page">
-            <h1 style="margin-bottom: 30px;">School Leaderboard 🏆</h1>
-            <ul class="leaderboard-list" id="leaderboard-list">
-                </ul>
-        </section>
 
-        <section id="badges" class="page">
-            <h1 style="margin-bottom: 30px;">My Eco-Badges 🎖️</h1>
-            <div class="badge-grid" id="badge-wall">
-                </div>
-        </section>
 
-        <section id="contact" class="page">
-            <h1 style="margin-bottom: 30px;">Contact & Support</h1>
-            <div class="card">
-                <h2>Get in Touch</h2>
-                <p>We partner with NGOs and eco-clubs to make a bigger impact.</p>
-                <form style="margin-top: 20px;">
-                    <input type="text" class="input-field" placeholder="Your Name">
-                    <input type="email" class="input-field" placeholder="Your Email">
-                    <textarea class="input-field" placeholder="Your Message" rows="4"></textarea>
-                    <button type="submit" class="btn btn-primary">Send Message</button>
-                </form>
-            </div>
-        </section>
+          <div style="width:100%;display:flex;gap:8px">
 
-    </main>
+            <button id="predictBtn" class="btn" style="flex:1">Run Prediction</button>
+
+            <button id="clearBtn" class="btn" style="flex:1;background:transparent;color:var(--accent);border:1px solid rgba(255,255,255,0.04)">Clear</button>
+
+          </div>
+
+
+
+          <div id="mockResults" class="results small" aria-live="polite"></div>
+
+        </div>
+
+
+
+        <div style="margin-top:12px;font-size:13px;color:var(--muted)">Note: This demo performs a mock prediction in-browser. To connect to a real model, deploy a backend (Flask/FastAPI) that exposes a /predict API accepting multipart/form-data and returning JSON {label, confidence, model}.</div>
+
+      </aside>
+
+    </section>
+
+
+
+    <section id="models" class="card" style="margin-top:22px">
+
+      <h2>Model Architectures</h2>
+
+      <div style="margin-top:8px" class="small">
+
+        <strong>Hybrid CNN–SVM</strong>: A CNN feature extractor (several conv blocks + global average pooling) trained on MRI images. Extracted features are fed to an SVM (RBF kernel or linear, cross-validated) for final classification. This approach often reduces overfitting and speeds up training compared to end-to-end deep fully-connected classifiers.
+
+      </div>
+
+
+
+      <div style="margin-top:12px" class="model-arch">
+
+<pre>
+
+CNN feature extractor (example)
+
+Conv(32,3x3) -> ReLU -> BatchNorm -> MaxPool
+
+Conv(64,3x3) -> ReLU -> BatchNorm -> MaxPool
+
+Conv(128,3x3) -> ReLU -> BatchNorm -> GlobalAveragePool
+
+Dense(256) -> ReLU -> Dropout(0.4)
+
+--&gt; Feature vector (size 256) stored and fed to SVM
+
+
+
+SVM classifier
+
+- Kernel: RBF or linear
+
+- Hyperparams: C (1.0), gamma='scale'
+
+</pre>
+
+      </div>
+
+
+
+      <h3 style="margin-top:12px">ResNet Benchmark</h3>
+
+      <div class="small">Standard ResNet-50 fine-tuned on the same training split. We extract top-1 accuracy, per-class recall, precision and compute inference time (ms) on CPU and GPU.</div>
+
+
+
+    </section>
+
+
+
+    <section id="results" class="card" style="margin-top:22px">
+
+      <h2>Benchmark Results (Example)</h2>
+
+      <p class="small">Below is a sample table. Replace with your experiment logs or connect to an analytics CSV to populate dynamically.</p>
+
+
+
+      <table>
+
+        <thead>
+
+          <tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>Inf. time (ms)</th></tr>
+
+        </thead>
+
+        <tbody>
+
+          <tr><td>Hybrid CNN–SVM</td><td>0.94</td><td>0.92</td><td>0.90</td><td>0.91</td><td>45</td></tr>
+
+          <tr><td>ResNet-50 (finetuned)</td><td>0.96</td><td>0.94</td><td>0.93</td><td>0.93</td><td>60</td></tr>
+
+        </tbody>
+
+      </table>
+
+
+
+      <div style="margin-top:12px" class="small">Tips: present per-class confusion matrices, ROC-AUC and Grad-CAM heatmaps in the final report. Use the same train/val/test splits and preprocessing pipeline for fair benchmarking.</div>
+
+    </section>
+
+
+
+    <section id="about" class="card" style="margin-top:22px">
+
+      <h2>Dataset & Preprocessing</h2>
+
+      <ul class="small">
+
+        <li>Common datasets: BRATS (multimodal MRI), TCIA, or institutional datasets (with anonymization & IRB approval).</li>
+
+        <li>Preprocessing: resize to 224×224 (or 256), intensity normalization, optional skull-stripping, data augmentation (rotation, flip, elastic).</li>
+
+        <li>Training tips: class balancing, cross-validation, early stopping and learning rate schedules.</li>
+
+      </ul>
+
+    </section>
+
+
+
+    <section id="contact" class="card" style="margin-top:22px">
+
+      <h2>Contact & Next Steps</h2>
+
+      <p class="small">Want this connected to a real model (Flask / FastAPI + TensorFlow/PyTorch) or want downloadable reports and graphs? Tell me which backend language you prefer and I can provide server code, Dockerfile and example model files.</p>
+
+      <p class="small">Author: Your Name • Email: you@example.com</p>
+
+    </section>
+
+
 
     <footer>
-        <p>&copy; 2025 GreenGuild. All rights reserved.</p>
-        <p>A platform for a greener future. 🌱</p>
+
+      © <span id="year"></span> Brain Tumor Detection • Built for demonstration
+
     </footer>
 
-    <script>
-        // JavaScript for GreenGuild interactivity and data management
+  </div>
 
-        // --- Sample Data ---
-        // A simple, in-memory database of registered users.
-        const registeredUsers = [];
-        
-        // A simple, in-memory database for missions, leaderboard, and badges
-        const sampleData = {
-            missions: [
-                // Tier 1: Daily/Simple Tasks (20 - 100 Eco-Points)
-                { id: 1, title: 'Use a Reusable Bottle', desc: 'Use a reusable water bottle today instead of a plastic one. Take a photo as proof!', points: 20, type: 'task', status: 'active' },
-                { id: 2, title: 'Daily Eco-Trivia', desc: 'Answer a quick question on environmental facts. Get it right for a reward!', points: 100, type: 'quiz', status: 'active' },
-                { id: 3, title: 'Energy Saver', desc: 'Turn off lights in a room when you leave for at least one hour. Submit a before/after photo.', points: 50, type: 'task', status: 'active' },
 
-                // Tier 2: Weekly/Moderate Missions (200 - 500 Eco-Points)
-                { id: 4, title: 'Waste Segregation Challenge', desc: 'Separate your household waste into dry and wet bins for one week. Take a photo as proof!', points: 500, type: 'task', status: 'active' },
-                { id: 5, title: 'Water Cycle Quiz', desc: 'Answer 5 multiple-choice questions on the water cycle. You get 3 attempts!', points: 250, type: 'quiz', status: 'active' },
-                { id: 6, title: 'Eco-Friendly Commute', desc: 'Walk or cycle to a nearby destination instead of using a vehicle. Take a photo of your mode of transport and destination.', points: 300, type: 'task', status: 'active' },
 
-                // Tier 3: High-Impact Missions (1,000 - 2,500 Eco-Points)
-                { id: 7, title: 'Plant a Sapling', desc: 'Plant a new tree or plant in your neighborhood and nurture it. Take a photo and share your experience!', points: 1000, type: 'task', status: 'active' },
-                { id: 8, title: 'Community Cleanup', desc: 'Organize a cleanup drive in your local park or street with your friends. Submit photos of the before and after!', points: 1500, type: 'task', status: 'active' },
-                { id: 9, title: 'Plastic-Free Week', desc: 'Commit to one week without using any single-use plastic products. Share your tips and challenges with your classmates!', points: 750, type: 'task', status: 'active' },
-                { id: 10, title: 'Composting Challenge', desc: 'Start a composting bin at home and document the process for one month. Share your progress!', points: 2000, type: 'task', status: 'active' },
-            ],
-            leaderboard: [],
-            badges: [
-                { id: 1, name: 'Eco-Warrior', icon: 'https://cdn-icons-png.flaticon.com/512/3257/3257850.png', unlocked: false },
-                { id: 2, name: 'Tree Planter', icon: 'https://cdn-icons-png.flaticon.com/512/3257/3257860.png', unlocked: false },
-                { id: 3, name: 'Recycle Guru', icon: 'https://cdn-icons-png.flaticon.com/512/3257/3257858.png', unlocked: false },
-                { id: 4, name: 'Water Saver', icon: 'https://cdn-icons-png.flaticon.com/512/3257/3257859.png', unlocked: false }
-            ],
-            submissions: [
-                { id: 1, studentId: 4, studentName: 'Neha Reddy', studentUsername: 'neha.r', missionId: 7, missionTitle: 'Plant a Sapling', proof: 'https://placehold.co/400x300/e0f2f1/00796b?text=Neha+Sapling+Proof', status: 'pending' }
-            ],
-            nextMissionId: 11,
-            nextSubmissionId: 2,
-        };
+  <script>
 
-        const quizQuestions = {
-            2: [ // Daily Eco-Trivia
-                { question: "What is the term for the variety of life on Earth?", options: ["Biodiversity", "Ecology", "Geology", "Botany"], answer: "Biodiversity" }
-            ],
-            5: [ // Water Cycle Quiz
-                {
-                    question: "What is the process where water changes from a liquid to a gas?",
-                    options: ["Condensation", "Evaporation", "Precipitation", "Transpiration"],
-                    answer: "Evaporation"
-                },
-                {
-                    question: "What is it called when water vapor in the air cools down and turns back into a liquid?",
-                    options: ["Evaporation", "Collection", "Condensation", "Sublimation"],
-                    answer: "Condensation"
-                },
-                {
-                    question: "Which term describes rain, snow, or hail falling from clouds?",
-                    options: ["Collection", "Infiltration", "Precipitation", "Runoff"],
-                    answer: "Precipitation"
-                },
-                {
-                    question: "Where does water typically collect after it falls to the Earth?",
-                    options: ["Rivers, lakes, and oceans", "The atmosphere", "The sun", "Underground volcanoes"],
-                    answer: "Rivers, lakes, and oceans"
-                },
-                {
-                    question: "What is the role of plants in the water cycle?",
-                    options: ["They create water", "They absorb all rainfall", "They release water vapor into the air through transpiration", "They have no role"],
-                    answer: "They release water vapor into the air through transpiration"
-                }
-            ]
-        };
-        
-        // --- State Management ---
-        let loggedInUser = null;
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-        // --- DOM Elements ---
-        const pageSections = document.querySelectorAll('.page');
-        const navLinks = document.querySelectorAll('.nav-link');
-        const header = document.getElementById('main-header');
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        const missionsList = document.getElementById('missions-list');
-        const leaderboardList = document.getElementById('leaderboard-list');
-        const badgeWall = document.getElementById('badge-wall');
-        const messageBox = document.getElementById('message-box');
-        const adminLink = document.getElementById('admin-link');
-        const logoutBtn = document.getElementById('logout-btn');
-        const submissionModal = document.getElementById('submissionModal');
-        const closeBtn = document.querySelector('.close-btn');
 
-        // --- Functions ---
-        function showMessage(message, duration = 3000) {
-            messageBox.textContent = message;
-            messageBox.classList.add('show');
-            setTimeout(() => {
-                messageBox.classList.remove('show');
-            }, duration);
-        }
 
-        function showPage(pageId) {
-            pageSections.forEach(page => {
-                page.classList.remove('active');
-            });
-            document.getElementById(pageId).classList.add('active');
-        }
+    const upload = document.getElementById('imageUpload');
 
-        function checkAuthentication() {
-            if (loggedInUser) {
-                header.style.display = 'block';
-                if (loggedInUser.role === 'teacher') {
-                    adminLink.style.display = 'block';
-                } else {
-                    adminLink.style.display = 'none';
-                }
-                showPage(loggedInUser.role === 'teacher' ? 'admin' : 'home');
-                updateUIForUser();
-            } else {
-                header.style.display = 'none';
-                showPage('login');
-            }
-        }
+    const preview = document.getElementById('previewContainer');
 
-        function updateUIForUser() {
-            if (loggedInUser) {
-                // Update profile page details
-                document.getElementById('profile-name').textContent = loggedInUser.name;
-                document.getElementById('profile-role').textContent = loggedInUser.role.charAt(0).toUpperCase() + loggedInUser.role.slice(1);
-                document.getElementById('profile-school').textContent = loggedInUser.school;
-                document.getElementById('profile-points').textContent = loggedInUser.points;
-                document.getElementById('profile-streak').textContent = loggedInUser.streak;
-                document.getElementById('ecoPoints').textContent = loggedInUser.points;
-                document.getElementById('streakCount').textContent = loggedInUser.streak;
-                document.getElementById('streakBar').style.width = `${Math.min(loggedInUser.streak, 7) / 7 * 100}%`;
+    const predictBtn = document.getElementById('predictBtn');
 
-                // Render other pages
-                displayMissions();
-                renderLeaderboard();
-                displayBadges();
-                updateAdminDashboard();
-            }
-        }
-        
-        // --- Mission & Quiz Logic ---
-        function displayMissions() {
-            if (loggedInUser.role !== 'student') return;
+    const clearBtn = document.getElementById('clearBtn');
 
-            missionsList.innerHTML = '';
-            sampleData.missions.forEach(mission => {
-                const missionCard = document.createElement('div');
-                missionCard.className = 'card';
-                missionCard.innerHTML = `
-                    <h3>${mission.title}</h3>
-                    <p style="opacity: 0.8; margin-top: 5px;">${mission.desc}</p>
-                    <p style="font-weight: 600; margin-top: 10px;">Reward: <span style="color: var(--blue-gradient-start);">${mission.points} Eco-Points</span></p>
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="startMission(${mission.id})">
-                        ${mission.type === 'quiz' ? 'Start Quiz' : 'Submit Proof'}
-                    </button>
-                    <div id="mission-${mission.id}-form" class="mission-submission-form">
-                        ${mission.type === 'task' ? `
-                            <p style="font-size: 0.9rem; opacity: 0.7;">Upload a photo showing your work.</p>
-                            <input type="file" id="proof-file-${mission.id}" accept="image/*" class="input-field">
-                            <button type="button" class="btn btn-primary" onclick="submitMission(${mission.id})">Submit</button>
-                        ` : ''}
-                    </div>
-                `;
-                missionsList.appendChild(missionCard);
-            });
-        }
+    const mockResults = document.getElementById('mockResults');
 
-        function startMission(missionId) {
-            const mission = sampleData.missions.find(m => m.id === missionId);
-            if (!mission) return;
 
-            if (mission.type === 'quiz') {
-                showPage('quiz');
-                renderQuiz(missionId);
-            } else {
-                const submissionForm = document.getElementById(`mission-${missionId}-form`);
-                submissionForm.style.display = 'block';
-            }
-        }
 
-        function renderQuiz(missionId) {
-            const mission = sampleData.missions.find(m => m.id === missionId);
-            if (!mission || mission.type !== 'quiz') return;
+    let currentFile = null;
 
-            document.getElementById('quizTitle').textContent = mission.title;
-            document.getElementById('quizDesc').textContent = mission.desc;
-            
-            const questionsContainer = document.getElementById('quiz-questions');
-            questionsContainer.innerHTML = '';
 
-            const questions = quizQuestions[missionId];
-            questions.forEach((q, index) => {
-                const questionDiv = document.createElement('div');
-                questionDiv.className = 'quiz-question';
-                questionDiv.innerHTML = `
-                    <p><strong>Question ${index + 1}:</strong> ${q.question}</p>
-                    <div class="quiz-options" data-question-index="${index}">
-                        ${q.options.map(option => `
-                            <label>
-                                <input type="radio" name="question-${index}" value="${option}">
-                                ${option}
-                            </label>
-                        `).join('')}
-                    </div>
-                `;
-                questionsContainer.appendChild(questionDiv);
-            });
 
-            document.getElementById('quiz-result').style.display = 'none';
-        }
+    upload.addEventListener('change', (e)=>{
 
-        function submitQuiz() {
-            const currentMissionId = 5; // Hardcoded for this example, would be dynamic in a real app
-            const questions = quizQuestions[currentMissionId];
-            let correctAnswers = 0;
-            
-            questions.forEach((q, index) => {
-                const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
-                if (selectedOption && selectedOption.value === q.answer) {
-                    correctAnswers++;
-                }
-            });
+      const file = e.target.files[0];
 
-            const resultDiv = document.getElementById('quiz-result');
-            if (correctAnswers === questions.length) {
-                const mission = sampleData.missions.find(m => m.id === currentMissionId);
-                loggedInUser.points += mission.points;
-                // Add streak logic if quiz is the daily mission
-                loggedInUser.streak++; 
-                showMessage(`Quiz completed! You earned ${mission.points} Eco-Points!`);
-                updateUIForUser();
-                resultDiv.textContent = `Perfect Score! You answered all ${questions.length} questions correctly.`;
-                resultDiv.className = 'quiz-result correct';
-            } else {
-                resultDiv.textContent = `You got ${correctAnswers} out of ${questions.length} correct. Try again!`;
-                resultDiv.className = 'quiz-result incorrect';
-            }
-            resultDiv.style.display = 'block';
-        }
+      currentFile = file;
 
-        function submitMission(missionId) {
-            const fileInput = document.getElementById(`proof-file-${missionId}`);
-            if (fileInput.files.length === 0) {
-                showMessage("Please upload a proof image.");
-                return;
-            }
+      preview.innerHTML = '';
 
-            const mission = sampleData.missions.find(m => m.id === missionId);
-            if (!mission) return;
+      if(!file) return;
 
-            const newSubmission = {
-                id: sampleData.nextSubmissionId++,
-                studentId: loggedInUser.id,
-                studentName: loggedInUser.name,
-                studentUsername: loggedInUser.username,
-                missionId: mission.id,
-                missionTitle: mission.title,
-                proof: 'https://placehold.co/400x300/e0f2f1/00796b?text=User+Submission',
-                status: 'pending'
-            };
-            sampleData.submissions.push(newSubmission);
-            showMessage("Mission submission successful! It is now pending teacher approval.");
-            document.getElementById(`mission-${missionId}-form`).style.display = 'none';
-            updateAdminDashboard();
-        }
+      const img = document.createElement('img');
 
-        // --- Leaderboard & Badges Logic ---
-        function renderLeaderboard() {
-            const sortedUsers = [...registeredUsers].filter(u => u.role === 'student').sort((a, b) => b.points - a.points);
-            leaderboardList.innerHTML = '';
-            sortedUsers.forEach((user, index) => {
-                const isCurrentUser = user.id === loggedInUser.id;
-                const leaderboardItem = document.createElement('li');
-                leaderboardItem.className = 'leaderboard-item';
-                leaderboardItem.innerHTML = `
-                    <span class="rank">${index + 1}</span>
-                    <div class="user-info">
-                        <strong>${user.name}</strong>
-                        <span class="username">@${user.username}</span>
-                    </div>
-                    <div style="font-weight: 600;">${user.points} <i class="fas fa-leaf" style="color: var(--blue-gradient-start);"></i></div>
-                `;
-                if (isCurrentUser) {
-                    leaderboardItem.style.background = 'rgba(255, 255, 255, 0.3)';
-                    leaderboardItem.style.border = '2px solid var(--text-color)';
-                }
-                leaderboardList.appendChild(leaderboardItem);
-            });
-        }
+      img.style.maxWidth = '100%';
 
-        function displayBadges() {
-            badgeWall.innerHTML = '';
-            sampleData.badges.forEach(badge => {
-                const badgeCard = document.createElement('div');
-                badgeCard.className = `badge-card ${badge.unlocked ? 'badge-unlocked' : ''}`;
-                const opacity = badge.unlocked ? '1' : '0.4';
-                badgeCard.innerHTML = `
-                    <img src="${badge.icon}" alt="${badge.name}" style="opacity: ${opacity};">
-                    <p style="margin-top: 10px; font-weight: 600;">${badge.name}</p>
-                `;
-                badgeWall.appendChild(badgeCard);
-            });
-        }
+      img.style.borderRadius = '8px';
 
-        // --- Admin Dashboard Logic ---
-        function updateAdminDashboard() {
-            if (loggedInUser && loggedInUser.role === 'teacher') {
-                renderPendingSubmissions();
-                renderStudentManagement();
-            }
-        }
+      img.style.boxShadow = '0 8px 30px rgba(2,6,23,0.6)';
 
-        function renderPendingSubmissions() {
-            const submissionList = document.getElementById('submission-list');
-            submissionList.innerHTML = '';
-            const pending = sampleData.submissions.filter(s => s.status === 'pending');
-            document.getElementById('submission-count').textContent = pending.length;
-            
-            if (pending.length === 0) {
-                submissionList.innerHTML = '<p style="text-align: center; opacity: 0.8;">No pending submissions.</p>';
-                return;
-            }
+      img.src = URL.createObjectURL(file);
 
-            pending.forEach(submission => {
-                const listItem = document.createElement('li');
-                listItem.className = 'admin-list-item';
-                listItem.innerHTML = `
-                    <div>
-                        <strong>${submission.studentName}</strong> submitted a task.
-                        <p style="font-size: 0.9rem; opacity: 0.7;">Mission: ${submission.missionTitle}</p>
-                    </div>
-                    <button class="btn btn-primary" style="margin-left: auto;" onclick="openSubmissionModal(${submission.id})">Review</button>
-                `;
-                submissionList.appendChild(listItem);
-            });
-        }
+      preview.appendChild(img);
 
-        function openSubmissionModal(submissionId) {
-            const submission = sampleData.submissions.find(s => s.id == submissionId);
-            if (!submission) return;
+      mockResults.innerHTML = '';
 
-            document.getElementById('modal-student-name').textContent = submission.studentName;
-            document.getElementById('modal-mission-title').textContent = submission.missionTitle;
-            document.getElementById('modal-submission-proof').src = submission.proof;
-            document.getElementById('submissionModal').style.display = 'block';
+    });
 
-            // Set data-id for approval/rejection buttons
-            document.querySelector('#submissionModal .btn[onclick*="approve"]').dataset.id = submission.id;
-            document.querySelector('#submissionModal .btn[onclick*="reject"]').dataset.id = submission.id;
-        }
 
-        function approveSubmission(submissionId) {
-            const submission = sampleData.submissions.find(s => s.id == submissionId);
-            if (!submission) return;
 
-            const student = registeredUsers.find(u => u.id === submission.studentId);
-            const mission = sampleData.missions.find(m => m.id === submission.missionId);
+    clearBtn.addEventListener('click', ()=>{
 
-            if (student && mission) {
-                student.points += mission.points;
-                student.streak++;
-                showMessage(`Approved! ${student.name} received ${mission.points} Eco-Points.`);
-            }
+      upload.value = '';
 
-            submission.status = 'approved';
-            submissionModal.style.display = 'none';
-            updateAdminDashboard();
-        }
+      preview.innerHTML = '';
 
-        function rejectSubmission(submissionId) {
-            const submission = sampleData.submissions.find(s => s.id == submissionId);
-            if (!submission) return;
+      mockResults.innerHTML = '';
 
-            submission.status = 'rejected';
-            showMessage(`Rejected submission for ${submission.studentName}.`);
-            submissionModal.style.display = 'none';
-            updateAdminDashboard();
-        }
-        
-        function renderStudentManagement() {
-            const studentList = document.getElementById('student-list');
-            studentList.innerHTML = '';
-            const students = registeredUsers.filter(u => u.role === 'student');
+      currentFile = null;
 
-            students.forEach(student => {
-                const listItem = document.createElement('li');
-                listItem.className = 'student-item';
-                listItem.innerHTML = `
-                    <div>
-                        <strong>${student.name}</strong>
-                        <p style="font-size: 0.9rem; opacity: 0.7;">Eco-Points: ${student.points}</p>
-                    </div>
-                `;
-                studentList.appendChild(listItem);
-            });
-        }
+    });
 
-        function toggleQuizForm() {
-            const missionType = document.getElementById('missionType').value;
-            const quizForm = document.getElementById('quiz-form');
-            quizForm.style.display = missionType === 'quiz' ? 'block' : 'none';
-        }
 
-        function addQuizQuestion() {
-            const container = document.getElementById('quiz-questions-container');
-            const questionIndex = container.children.length;
-            const questionDiv = document.createElement('div');
-            questionDiv.className = 'quiz-question-fields';
-            questionDiv.innerHTML = `
-                <p><strong>Question ${questionIndex + 1}:</strong></p>
-                <input type="text" class="input-field quiz-q" placeholder="Question Text" required>
-                <input type="text" class="input-field quiz-o" placeholder="Option A" required>
-                <input type="text" class="input-field quiz-o" placeholder="Option B" required>
-                <input type="text" class="input-field quiz-o" placeholder="Option C" required>
-                <input type="text" class="input-field quiz-o" placeholder="Option D" required>
-                <input type="text" class="input-field quiz-a" placeholder="Correct Answer (e.g., Option B)" required>
-            `;
-            container.appendChild(questionDiv);
-        }
-        
-        // --- Event Listeners ---
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const user = registeredUsers.find(u => u.email === email && u.password === password);
-            if (user) {
-                loggedInUser = user;
-                showMessage(`Welcome back, ${loggedInUser.name}!`);
-                checkAuthentication();
-            } else {
-                showMessage('Invalid email or password.');
-            }
-        });
 
-        registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('regName').value;
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const school = document.getElementById('regSchool').value;
-            const role = document.getElementById('regRole').value;
+    // Mock prediction logic — replace with fetch to your backend '/predict' endpoint.
 
-            const existingUser = registeredUsers.find(u => u.email === email);
-            if (existingUser) {
-                showMessage('An account with this email already exists.');
-                return;
-            }
+    predictBtn.addEventListener('click', ()=>{
 
-            const newUser = {
-                id: registeredUsers.length + 1,
-                name,
-                username: email.split('@')[0],
-                email,
-                password,
-                school,
-                role,
-                points: 0,
-                streak: 0,
-                missionsCompleted: [],
-                badges: []
-            };
-            registeredUsers.push(newUser);
-            loggedInUser = newUser;
-            showMessage(`Registration successful! Welcome to GreenGuild, ${name}!`);
-            checkAuthentication();
-        });
+      if(!currentFile){ mockResults.innerHTML = '<div class="small">Please upload an image first.</div>'; return }
 
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const pageId = link.dataset.page;
-                if (pageId) {
-                    showPage(pageId);
-                }
-            });
-        });
 
-        logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            loggedInUser = null;
-            showMessage('You have been logged out.');
-            checkAuthentication();
-        });
 
-        closeBtn.onclick = function() {
-            submissionModal.style.display = "none";
-        }
-        window.onclick = function(event) {
-            if (event.target == submissionModal) {
-                submissionModal.style.display = "none";
-            }
-        }
-        
-        // Admin Dashboard Tabs
-        document.querySelectorAll('.admin-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                document.querySelectorAll('.admin-content').forEach(c => c.classList.remove('active'));
-                document.getElementById(tab.dataset.tab).classList.add('active');
-            });
-        });
+      // Simple simulated delay
 
-        // Initial check on page load
-        checkAuthentication();
-    </script>
+      mockResults.innerHTML = '<div class="small">Running inference...</div>';
+
+      setTimeout(()=>{
+
+        // Mock outputs — in real usage, call your API and replace these fields
+
+        const models = ['Hybrid CNN–SVM','ResNet-50'];
+
+        const chosen = Math.random() > 0.5 ? 0 : 1;
+
+        const label = Math.random() > 0.6 ? 'Tumor Detected' : 'No Tumor Detected';
+
+        const conf = (0.75 + Math.random()*0.24).toFixed(2);
+
+        mockResults.innerHTML = `
+
+          <div style="margin-top:8px">
+
+            <div><strong>Model:</strong> ${models[chosen]}</div>
+
+            <div><strong>Prediction:</strong> <span class="badge">${label}</span></div>
+
+            <div><strong>Confidence:</strong> ${conf}</div>
+
+            <div style="margin-top:8px;font-size:13px;color:var(--muted)">To connect to a real model, deploy a server and update the fetch call in this file to POST the image file.</div>
+
+          </div>
+
+        `;
+
+      },800);
+
+    });
+
+
+
+    // Example: function to upload to backend (commented)
+
+    /*
+
+    async function sendToBackend(file){
+
+      const fd = new FormData();
+
+      fd.append('image', file);
+
+      const res = await fetch('/predict',{method:'POST',body:fd});
+
+      const json = await res.json();
+
+      // handle json {label,confidence,model}
+
+    }
+
+    */
+
+  </script>
+
 </body>
+
 </html>
